@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personas - Personal Board</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .personas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .persona-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .persona-card h3 {
+      margin-bottom: 0.25rem;
+    }
+    .persona-card .role {
+      color: var(--primary);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .persona-card .description {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    .reasoning-level {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.25rem 0.5rem;
+      background: var(--border);
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <h1>Personal Board</h1>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="new-memo.html">New Memo</a>
+      <a href="decision-log.html">Decision Log</a>
+      <a href="personas.html" class="active">Personas</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h2>Your Board of Directors</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Meet the AI personas that will analyze your decisions.</p>
+
+    <div class="personas-grid">
+      <div class="persona-card">
+        <h3>Supreme Strategist</h3>
+        <p class="role">Mentor & Synthesizer</p>
+        <p class="description">Calm, incisive, and not verbose. Uses "If this is true, then..." logic. Calls out illusions like vanity metrics, sunk cost, and ego-protection. Synthesizes all perspectives into one clear recommendation.</p>
+        <span class="reasoning-level">Reasoning: High</span>
+      </div>
+
+      <div class="persona-card">
+        <h3>Board Secretary</h3>
+        <p class="role">Chief of Staff</p>
+        <p class="description">Procedural, neutral, and crisp. Normalizes and cleans your memo, extracts assumptions, and flags missing information. Prepares the briefing for other board members.</p>
+        <span class="reasoning-level">Reasoning: Low</span>
+      </div>
+
+      <div class="persona-card">
+        <h3>The Operator</h3>
+        <p class="role">COO</p>
+        <p class="description">Direct, concrete, and timeline-focused. Converts decisions into executable plans with sequences, dependencies, and next-7-days steps. Avoids abstract strategy talk.</p>
+        <span class="reasoning-level">Reasoning: Medium</span>
+      </div>
+
+      <div class="persona-card">
+        <h3>Finance Brain</h3>
+        <p class="role">CFO</p>
+        <p class="description">Quantitative and threshold-driven. Evaluates ROI, downside risk, opportunity cost, and optionality. Pushes for simple rules and clear go/no-go thresholds.</p>
+        <span class="reasoning-level">Reasoning: Medium</span>
+      </div>
+
+      <div class="persona-card">
+        <h3>Craft Expert</h3>
+        <p class="role">Domain Mentor</p>
+        <p class="description">Domain-deep and craft-proud. Focuses on best practices, common pitfalls, quality signals, and sharper framing. Avoids generic advice.</p>
+        <span class="reasoning-level">Reasoning: Medium</span>
+      </div>
+
+      <div class="persona-card">
+        <h3>The Contrarian</h3>
+        <p class="role">Red Team</p>
+        <p class="description">Skeptical but constructive. Assumes the plan is wrong and finds the holes. Identifies failure modes, hidden assumptions, and second-order effects. Always provides a counter-proposal.</p>
+        <span class="reasoning-level">Reasoning: High</span>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

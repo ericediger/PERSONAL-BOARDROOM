@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Memo - Personal Board</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .memo-form {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .dynamic-list {
+      margin-top: 0.5rem;
+    }
+    .dynamic-list input {
+      margin-bottom: 0.5rem;
+    }
+    .add-btn {
+      background: var(--border);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+    .option-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .option-row input {
+      flex: 1;
+    }
+    .remove-btn {
+      background: var(--error);
+      color: white;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <h1>Personal Board</h1>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="new-memo.html" class="active">New Memo</a>
+      <a href="decision-log.html">Decision Log</a>
+      <a href="personas.html">Personas</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h2>New Board Memo</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Present your decision to the board. Be specific and structured.</p>
+
+    <form id="memo-form" class="memo-form">
+      <div class="form-group">
+        <label for="category">Category</label>
+        <select id="category" required>
+          <option value="project">Project</option>
+          <option value="career">Career</option>
+          <option value="finance">Finance</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="decision_required">Decision Required *</label>
+        <input type="text" id="decision_required" placeholder="What specific decision do you need to make?" required>
+        <p class="form-hint">One clear sentence describing what needs to be decided</p>
+      </div>
+
+      <div class="form-group">
+        <label>Context</label>
+        <div id="context-list" class="dynamic-list">
+          <input type="text" placeholder="Background information...">
+        </div>
+        <button type="button" class="btn add-btn" onclick="addContextItem()">+ Add Context</button>
+        <p class="form-hint">Key facts the board needs to know</p>
+      </div>
+
+      <div class="form-group">
+        <label>Options Being Considered</label>
+        <div id="options-list" class="dynamic-list">
+          <div class="option-row">
+            <input type="text" placeholder="Option A: ...">
+            <button type="button" class="remove-btn" onclick="removeOption(this)">X</button>
+          </div>
+          <div class="option-row">
+            <input type="text" placeholder="Option B: ...">
+            <button type="button" class="remove-btn" onclick="removeOption(this)">X</button>
+          </div>
+        </div>
+        <button type="button" class="btn add-btn" onclick="addOption()">+ Add Option</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="time_constraint">Time Constraint</label>
+          <input type="text" id="time_constraint" placeholder="e.g., Need to decide by Friday">
+        </div>
+        <div class="form-group">
+          <label for="budget_constraint">Budget Constraint</label>
+          <input type="text" id="budget_constraint" placeholder="e.g., Max $5,000">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="risk_tolerance">Risk Tolerance</label>
+        <select id="risk_tolerance">
+          <option value="low">Low - Prefer safe, proven approaches</option>
+          <option value="medium" selected>Medium - Balanced risk/reward</option>
+          <option value="high">High - Open to bold moves</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Success Metrics</label>
+        <div id="metrics-list" class="dynamic-list">
+          <input type="text" placeholder="How will you know this decision worked?">
+        </div>
+        <button type="button" class="btn add-btn" onclick="addMetric()">+ Add Metric</button>
+      </div>
+
+      <div class="form-group">
+        <label>Questions for the Board</label>
+        <div id="questions-list" class="dynamic-list">
+          <input type="text" placeholder="What specifically do you want the board to address?">
+        </div>
+        <button type="button" class="btn add-btn" onclick="addQuestion()">+ Add Question</button>
+      </div>
+
+      <div style="margin-top: 2rem;">
+        <button type="submit" class="btn btn-primary">Submit to Board</button>
+      </div>
+    </form>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    function addContextItem() {
+      const list = document.getElementById('context-list');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Additional context...';
+      list.appendChild(input);
+    }
+
+    function addOption() {
+      const list = document.getElementById('options-list');
+      const row = document.createElement('div');
+      row.className = 'option-row';
+      row.innerHTML = `
+        <input type="text" placeholder="Option...">
+        <button type="button" class="remove-btn" onclick="removeOption(this)">X</button>
+      `;
+      list.appendChild(row);
+    }
+
+    function removeOption(btn) {
+      btn.parentElement.remove();
+    }
+
+    function addMetric() {
+      const list = document.getElementById('metrics-list');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Another success metric...';
+      list.appendChild(input);
+    }
+
+    function addQuestion() {
+      const list = document.getElementById('questions-list');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = 'Another question...';
+      list.appendChild(input);
+    }
+
+    function getListValues(containerId) {
+      const inputs = document.querySelectorAll(`#${containerId} input`);
+      return Array.from(inputs).map(i => i.value.trim()).filter(v => v);
+    }
+
+    document.getElementById('memo-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const category = document.getElementById('category').value;
+      const decision_required = document.getElementById('decision_required').value;
+      const context = getListValues('context-list');
+      const options = getListValues('options-list').map(o => ({ description: o }));
+      const success_metrics = getListValues('metrics-list');
+      const questions_for_board = getListValues('questions-list');
+
+      const constraints = {
+        time: document.getElementById('time_constraint').value,
+        budget: document.getElementById('budget_constraint').value,
+        risk_tolerance: document.getElementById('risk_tolerance').value
+      };
+
+      try {
+        // Create session
+        const session = await api.createSession(category);
+
+        // Save memo
+        await api.saveMemo(session.id, {
+          decision_required,
+          context,
+          options,
+          constraints,
+          success_metrics,
+          questions_for_board
+        });
+
+        // Redirect to session view
+        window.location.href = `session-view.html?id=${session.id}`;
+      } catch (error) {
+        console.error('Failed to create memo:', error);
+        alert('Failed to create memo: ' + error.message);
+      }
+    });
+  </script>
+</body>
+</html>

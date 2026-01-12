@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decision Log - Personal Board</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .search-bar {
+      margin-bottom: 2rem;
+    }
+    .search-bar input {
+      width: 100%;
+      max-width: 400px;
+    }
+    .decision-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .decision-card h3 {
+      margin-bottom: 0.5rem;
+    }
+    .decision-meta {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .decision-card p {
+      margin-bottom: 0.5rem;
+    }
+    .decision-card .rationale {
+      color: var(--text-muted);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <h1>Personal Board</h1>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="new-memo.html">New Memo</a>
+      <a href="decision-log.html" class="active">Decision Log</a>
+      <a href="personas.html">Personas</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h2>Decision Log</h2>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Your decision history and outcomes.</p>
+
+    <div class="search-bar">
+      <input type="text" id="search" placeholder="Search decisions..." oninput="searchDecisions()">
+    </div>
+
+    <div id="decisions-list">
+      <p class="loading">Loading decisions...</p>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    let allDecisions = [];
+
+    async function loadDecisions() {
+      try {
+        allDecisions = await api.getDecisions();
+        renderDecisions(allDecisions);
+      } catch (error) {
+        console.error('Failed to load decisions:', error);
+        document.getElementById('decisions-list').innerHTML = '<p class="empty">Failed to load decisions.</p>';
+      }
+    }
+
+    function renderDecisions(decisions) {
+      const container = document.getElementById('decisions-list');
+
+      if (decisions.length === 0) {
+        container.innerHTML = '<p class="empty">No decisions yet. Complete a board session to see your decisions here.</p>';
+        return;
+      }
+
+      container.innerHTML = decisions.map(d => {
+        const guardrails = JSON.parse(d.execution_guardrails || '[]');
+        return `
+          <div class="decision-card">
+            <h3>${d.decision_statement || 'Untitled Decision'}</h3>
+            <div class="decision-meta">
+              <span>${d.category || 'General'}</span>
+              <span>${new Date(d.created_at).toLocaleDateString()}</span>
+            </div>
+            ${d.rationale ? `<p class="rationale">${d.rationale}</p>` : ''}
+            ${guardrails.length ? `<p><strong>Guardrails:</strong> ${guardrails.join('; ')}</p>` : ''}
+            ${d.assumption_to_test ? `<p><strong>Test:</strong> ${d.assumption_to_test}</p>` : ''}
+            ${d.outcome ? `<p><strong>Outcome:</strong> ${d.outcome}</p>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function searchDecisions() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const filtered = allDecisions.filter(d =>
+        (d.decision_statement || '').toLowerCase().includes(query) ||
+        (d.rationale || '').toLowerCase().includes(query)
+      );
+      renderDecisions(filtered);
+    }
+
+    loadDecisions();
+  </script>
+</body>
+</html>

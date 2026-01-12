@@ -1,0 +1,32 @@
+# Environment and secrets
+.env
+config/config.json
+
+# Database
+data/board.db
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code settings
+.claude/
+
+# Outputs (may contain personal data)
+OUTPUTS/

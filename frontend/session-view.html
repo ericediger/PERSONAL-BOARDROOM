@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session View - Personal Board</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .session-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .session-meta {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .memo-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .memo-section h3 {
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    .memo-section ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .responses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .response-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    .response-card h4 {
+      margin-bottom: 0.5rem;
+      text-transform: capitalize;
+    }
+    .response-card .position {
+      font-style: italic;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+    .response-card .confidence {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+    .confidence-high { background: var(--success); color: black; }
+    .confidence-medium { background: var(--warning); color: black; }
+    .confidence-low { background: var(--error); color: white; }
+    .strategist-section {
+      background: linear-gradient(135deg, var(--surface) 0%, #1a2a3a 100%);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .strategist-section h3 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+    .decision-box {
+      background: var(--bg);
+      border-radius: 6px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    .actions-list {
+      list-style: none;
+      padding: 0;
+    }
+    .actions-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .actions-list li:last-child {
+      border-bottom: none;
+    }
+    .btn-run {
+      background: var(--success);
+      color: black;
+    }
+    .btn-finalize {
+      background: var(--primary);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <h1>Personal Board</h1>
+    <div class="nav-links">
+      <a href="index.html">Dashboard</a>
+      <a href="new-memo.html">New Memo</a>
+      <a href="decision-log.html">Decision Log</a>
+      <a href="personas.html">Personas</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="session-header">
+      <h2>Board Session</h2>
+      <div class="session-meta">
+        <span id="session-status" class="status">Loading...</span>
+        <span id="session-category" class="category"></span>
+      </div>
+    </div>
+
+    <div id="memo-container">
+      <p class="loading">Loading session...</p>
+    </div>
+
+    <div id="run-container" style="display: none; margin-bottom: 2rem;">
+      <button id="run-btn" class="btn btn-run" onclick="runBoardMeeting()">Convene Board Meeting</button>
+    </div>
+
+    <div id="responses-container" style="display: none;">
+      <h3>Board Member Responses</h3>
+      <div id="responses-grid" class="responses-grid"></div>
+    </div>
+
+    <div id="strategist-container" style="display: none;"></div>
+
+    <div id="finalize-container" style="display: none; margin-top: 2rem;">
+      <button class="btn btn-finalize" onclick="finalizeDecision()">Finalize Decision</button>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('id');
+
+    async function loadSession() {
+      if (!sessionId) {
+        document.getElementById('memo-container').innerHTML = '<p class="empty">No session ID provided.</p>';
+        return;
+      }
+
+      try {
+        const data = await api.getSession(sessionId);
+        renderSession(data);
+      } catch (error) {
+        console.error('Failed to load session:', error);
+        document.getElementById('memo-container').innerHTML = '<p class="empty">Failed to load session.</p>';
+      }
+    }
+
+    function renderSession(data) {
+      const { session, memo, responses, decision } = data;
+
+      // Update status
+      document.getElementById('session-status').textContent = session.status;
+      document.getElementById('session-status').className = `status status-${session.status}`;
+      document.getElementById('session-category').textContent = session.category || 'General';
+
+      // Render memo
+      if (memo) {
+        const context = JSON.parse(memo.context || '[]');
+        const options = JSON.parse(memo.options || '[]');
+        const constraints = JSON.parse(memo.constraints || '{}');
+        const metrics = JSON.parse(memo.success_metrics || '[]');
+        const questions = JSON.parse(memo.questions_for_board || '[]');
+
+        document.getElementById('memo-container').innerHTML = `
+          <div class="memo-section">
+            <h3>Board Memo</h3>
+            <p><strong>Decision Required:</strong> ${memo.decision_required}</p>
+
+            ${context.length ? `<p><strong>Context:</strong></p><ul>${context.map(c => `<li>${c}</li>`).join('')}</ul>` : ''}
+
+            ${options.length ? `<p><strong>Options:</strong></p><ul>${options.map(o => `<li>${o.description || o}</li>`).join('')}</ul>` : ''}
+
+            ${Object.keys(constraints).length ? `
+              <p><strong>Constraints:</strong></p>
+              <ul>
+                ${constraints.time ? `<li>Time: ${constraints.time}</li>` : ''}
+                ${constraints.budget ? `<li>Budget: ${constraints.budget}</li>` : ''}
+                ${constraints.risk_tolerance ? `<li>Risk Tolerance: ${constraints.risk_tolerance}</li>` : ''}
+              </ul>
+            ` : ''}
+
+            ${metrics.length ? `<p><strong>Success Metrics:</strong></p><ul>${metrics.map(m => `<li>${m}</li>`).join('')}</ul>` : ''}
+
+            ${questions.length ? `<p><strong>Questions for Board:</strong></p><ul>${questions.map(q => `<li>${q}</li>`).join('')}</ul>` : ''}
+          </div>
+        `;
+
+        // Show run button if draft
+        if (session.status === 'draft') {
+          document.getElementById('run-container').style.display = 'block';
+        }
+      } else {
+        document.getElementById('memo-container').innerHTML = '<p class="empty">No memo found. <a href="new-memo.html">Create one</a>.</p>';
+      }
+
+      // Render responses
+      if (responses && responses.length > 0) {
+        document.getElementById('responses-container').style.display = 'block';
+
+        const boardMembers = responses.filter(r => r.persona_id !== 'strategist');
+        const strategist = responses.find(r => r.persona_id === 'strategist');
+
+        document.getElementById('responses-grid').innerHTML = boardMembers.map(r => {
+          const reasons = JSON.parse(r.top_reasons || '[]');
+          const risks = JSON.parse(r.top_risks || '[]');
+          return `
+            <div class="response-card">
+              <h4>${r.persona_id.replace('-', ' ')}</h4>
+              <p class="position">${r.position || 'No position stated'}</p>
+              <span class="confidence confidence-${r.confidence}">${r.confidence}</span>
+              ${reasons.length ? `<p><strong>Reasons:</strong></p><ul>${reasons.slice(0, 3).map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
+              ${risks.length ? `<p><strong>Risks:</strong></p><ul>${risks.slice(0, 2).map(x => `<li>${x}</li>`).join('')}</ul>` : ''}
+            </div>
+          `;
+        }).join('');
+
+        // Render strategist
+        if (strategist) {
+          let parsed = {};
+          try {
+            parsed = JSON.parse(strategist.raw_analysis || '{}');
+          } catch (e) {
+            parsed = { integrated_recommendation: { decision: strategist.position } };
+          }
+
+          const rec = parsed.integrated_recommendation || {};
+          const actions = parsed.next_actions || [];
+          const guardrails = parsed.execution_guardrails || [];
+
+          document.getElementById('strategist-container').style.display = 'block';
+          document.getElementById('strategist-container').innerHTML = `
+            <div class="strategist-section">
+              <h3>Supreme Strategist Synthesis</h3>
+              <div class="decision-box">
+                <p><strong>Decision:</strong> ${rec.decision || strategist.position || 'N/A'}</p>
+                <p><strong>Rationale:</strong> ${rec.rationale || 'N/A'}</p>
+                <p><strong>Reversibility:</strong> ${rec.reversibility || 'N/A'}</p>
+              </div>
+
+              ${guardrails.length ? `
+                <p><strong>Execution Guardrails:</strong></p>
+                <ul>${guardrails.map(g => `<li>${g}</li>`).join('')}</ul>
+              ` : ''}
+
+              ${actions.length ? `
+                <p><strong>Next Actions:</strong></p>
+                <ul class="actions-list">
+                  ${actions.map(a => `<li><strong>${a.action}</strong> - ${a.owner} (${a.timeframe})</li>`).join('')}
+                </ul>
+              ` : ''}
+
+              ${parsed.assumption_to_test ? `<p><strong>Key Assumption to Test:</strong> ${parsed.assumption_to_test}</p>` : ''}
+            </div>
+          `;
+
+          // Show finalize button if complete but no decision yet
+          if (session.status === 'complete' && !decision) {
+            document.getElementById('finalize-container').style.display = 'block';
+          }
+        }
+      }
+    }
+
+    async function runBoardMeeting() {
+      const btn = document.getElementById('run-btn');
+      btn.disabled = true;
+      btn.textContent = 'Running Board Meeting...';
+
+      try {
+        await api.runBoardMeeting(sessionId);
+        window.location.reload();
+      } catch (error) {
+        console.error('Failed to run board meeting:', error);
+        alert('Failed to run board meeting: ' + error.message);
+        btn.disabled = false;
+        btn.textContent = 'Convene Board Meeting';
+      }
+    }
+
+    async function finalizeDecision() {
+      // Get strategist recommendation
+      const data = await api.getSession(sessionId);
+      const strategist = data.responses.find(r => r.persona_id === 'strategist');
+
+      if (strategist) {
+        let parsed = {};
+        try {
+          parsed = JSON.parse(strategist.raw_analysis || '{}');
+        } catch (e) {}
+
+        const decision = {
+          decision_statement: parsed.decision_statement || parsed.integrated_recommendation?.decision || '',
+          rationale: parsed.integrated_recommendation?.rationale || '',
+          execution_guardrails: parsed.execution_guardrails || [],
+          pre_mortem: parsed.pre_mortem || {},
+          assumption_to_test: parsed.assumption_to_test || ''
+        };
+
+        await api.finalizeDecision(sessionId, decision);
+        alert('Decision finalized!');
+        window.location.href = 'decision-log.html';
+      }
+    }
+
+    loadSession();
+  </script>
+</body>
+</html>

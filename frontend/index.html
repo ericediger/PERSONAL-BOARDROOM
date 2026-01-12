@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal Board of Directors</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <nav class="nav">
+    <h1>Personal Board</h1>
+    <div class="nav-links">
+      <a href="index.html" class="active">Dashboard</a>
+      <a href="new-memo.html">New Memo</a>
+      <a href="decision-log.html">Decision Log</a>
+      <a href="personas.html">Personas</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="hero">
+      <h2>Your Board Awaits</h2>
+      <p>Submit a memo. Get structured advice. Make better decisions.</p>
+      <a href="new-memo.html" class="btn btn-primary">+ New Board Memo</a>
+    </section>
+
+    <section class="recent">
+      <h3>Recent Sessions</h3>
+      <div id="recent-sessions" class="sessions-list">
+        <p class="loading">Loading...</p>
+      </div>
+    </section>
+
+    <section class="actions">
+      <h3>Open Actions</h3>
+      <div id="open-actions" class="actions-list">
+        <p class="loading">Loading...</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    async function loadDashboard() {
+      try {
+        // Load recent sessions
+        const sessions = await api.getSessions({ limit: 5 });
+        const sessionsEl = document.getElementById('recent-sessions');
+
+        if (sessions.length === 0) {
+          sessionsEl.innerHTML = '<p class="empty">No sessions yet. Create your first board memo!</p>';
+        } else {
+          sessionsEl.innerHTML = sessions.map(s => `
+            <a href="session-view.html?id=${s.id}" class="session-card">
+              <span class="status status-${s.status}">${s.status}</span>
+              <span class="category">${s.category || 'General'}</span>
+              <span class="date">${new Date(s.created_at).toLocaleDateString()}</span>
+            </a>
+          `).join('');
+        }
+
+        // Load actions (placeholder)
+        const actionsEl = document.getElementById('open-actions');
+        actionsEl.innerHTML = '<p class="empty">No open actions.</p>';
+      } catch (error) {
+        console.error('Failed to load dashboard:', error);
+        document.getElementById('recent-sessions').innerHTML =
+          '<p class="empty">Could not connect to server. Make sure it\'s running on port 3000.</p>';
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>
